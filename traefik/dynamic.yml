@@ -1,0 +1,9 @@
+# Traefik Dynamic Configuration
+# Additional routing rules (most routing via Docker labels)
+
+http:
+  middlewares:
+    strip-classic:
+      stripPrefix:
+        prefixes:
+          - "/classic"

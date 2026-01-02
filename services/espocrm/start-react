@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Start the React frontend development server
+# Runs on localhost:5173 with proxy to PHP backend at localhost:8080
+
+cd "$(dirname "$0")/frontend-react"
+
+echo "Starting React frontend..."
+echo "  → React app: http://localhost:5173"
+echo "  → API proxy: http://localhost:8080/api"
+echo ""
+echo "Make sure PHP backend is running:"
+echo "  php -S localhost:8080 -t public/"
+echo ""
+
+npm run dev

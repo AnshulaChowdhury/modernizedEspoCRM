@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v2.10
+    command:
+      - "--configFile=/etc/traefik/traefik.yml"
+    ports:
+      - "9000:80"    # Main traffic
+      - "9001:8080"  # Dashboard
+    volumes:
+      - ./traefik:/etc/traefik:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - espocrm
+    restart: unless-stopped
+
+  espocrm:
+    build:
+      context: ./services/espocrm
+      dockerfile: Dockerfile.dev
+    labels:
+      - "traefik.enable=true"
+      # Define single service for this container
+      - "traefik.http.services.espocrm.loadbalancer.server.port=80"
+      # Route /api/* to EspoCRM (for React frontend)
+      - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.api.entrypoints=web"
+      - "traefik.http.routers.api.priority=50"
+      - "traefik.http.routers.api.service=espocrm"
+      # Route EspoCRM static assets (client, css, fonts, etc.)
+      - "traefik.http.routers.espocrm-assets.rule=PathPrefix(`/client`) || PathPrefix(`/css`) || PathPrefix(`/fonts`) || PathPrefix(`/images`) || PathPrefix(`/img`)"
+      - "traefik.http.routers.espocrm-assets.entrypoints=web"
+      - "traefik.http.routers.espocrm-assets.priority=40"
+      - "traefik.http.routers.espocrm-assets.service=espocrm"
+      # Route /classic/* to EspoCRM
+      - "traefik.http.routers.classic.rule=PathPrefix(`/classic`)"
+      - "traefik.http.routers.classic.entrypoints=web"
+      - "traefik.http.routers.classic.middlewares=strip-classic@file"
+      - "traefik.http.routers.classic.priority=10"
+      - "traefik.http.routers.classic.service=espocrm"
+    environment:
+      - ESPOCRM_DATABASE_HOST=espocrm-db
+      - ESPOCRM_DATABASE_USER=espocrm
+      - ESPOCRM_DATABASE_PASSWORD=espocrm
+      - ESPOCRM_DATABASE_NAME=espocrm
+      - ESPOCRM_ADMIN_USERNAME=admin
+      - ESPOCRM_ADMIN_PASSWORD=admin123
+      - ESPOCRM_SITE_URL=http://localhost:9000/classic
+    volumes:
+      - ./services/espocrm:/var/www/html
+    depends_on:
+      - espocrm-db
+    networks:
+      - espocrm
+    restart: unless-stopped
+
+  react:
+    build:
+      context: ./services/espocrm/frontend-react
+      dockerfile: Dockerfile.dev
+    labels:
+      - "traefik.enable=true"
+      # Define service for this container
+      - "traefik.http.services.react.loadbalancer.server.port=5173"
+      # Route / to React (lowest priority, catch-all)
+      - "traefik.http.routers.react.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.react.entrypoints=web"
+      - "traefik.http.routers.react.priority=1"
+      - "traefik.http.routers.react.service=react"
+    volumes:
+      - ./services/espocrm/frontend-react:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_BASE_URL=http://localhost/classic
+    networks:
+      - espocrm
+    restart: unless-stopped
+
+  espocrm-db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=espocrm
+      - POSTGRES_USER=espocrm
+      - POSTGRES_PASSWORD=espocrm
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - espocrm
+    restart: unless-stopped
+
+networks:
+  espocrm:
+    driver: bridge
+
+volumes:
+  postgres_data:  # Local dev only - separate from any existing volumes

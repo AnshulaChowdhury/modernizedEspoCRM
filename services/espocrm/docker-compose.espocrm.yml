@@ -1,0 +1,94 @@
+services:
+  espocrm:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: espocrm-app
+    ports:
+      - "${ESPOCRM_PORT:-8080}:80"
+    volumes:
+      - .:/var/www/html
+    environment:
+      - ESPOCRM_DATABASE_PLATFORM=Postgresql
+      - ESPOCRM_DATABASE_HOST=espocrm-db
+      - ESPOCRM_DATABASE_PORT=5432
+      - ESPOCRM_DATABASE_NAME=${POSTGRES_DB:-espocrm}
+      - ESPOCRM_DATABASE_USER=${POSTGRES_USER:-espocrm}
+      - ESPOCRM_DATABASE_PASSWORD=${POSTGRES_PASSWORD:-espocrm}
+      - ESPOCRM_ADMIN_USERNAME=${ESPOCRM_ADMIN_USERNAME:-admin}
+      - ESPOCRM_ADMIN_PASSWORD=${ESPOCRM_ADMIN_PASSWORD:-admin}
+      - ESPOCRM_SITE_URL=http://localhost:${ESPOCRM_PORT:-8080}
+    depends_on:
+      espocrm-db:
+        condition: service_healthy
+    networks:
+      - espocrm-network
+    restart: unless-stopped
+
+  espocrm-db:
+    image: postgres:15
+    container_name: espocrm-db
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-espocrm}
+      - POSTGRES_USER=${POSTGRES_USER:-espocrm}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-espocrm}
+    volumes:
+      - espocrm-db-data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-espocrm} -d ${POSTGRES_DB:-espocrm}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - espocrm-network
+    restart: unless-stopped
+
+  espocrm-daemon:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: espocrm-daemon
+    entrypoint: ["php", "daemon.php"]
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - espocrm
+    networks:
+      - espocrm-network
+    restart: unless-stopped
+    profiles:
+      - full
+
+  espocrm-websocket:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: espocrm-websocket
+    entrypoint: ["php", "websocket.php"]
+    ports:
+      - "${WEBSOCKET_PORT:-8081}:8080"
+    volumes:
+      - .:/var/www/html
+    environment:
+      - ESPOCRM_CONFIG_USE_WEB_SOCKET=true
+      - ESPOCRM_CONFIG_WEB_SOCKET_URL=ws://localhost:${WEBSOCKET_PORT:-8081}
+      - ESPOCRM_CONFIG_WEB_SOCKET_ZERO_M_Q_SUBSCRIBER_DSN=tcp://*:7777
+      - ESPOCRM_CONFIG_WEB_SOCKET_ZERO_M_Q_SUBMISSION_DSN=tcp://espocrm-websocket:7777
+    depends_on:
+      - espocrm
+    networks:
+      - espocrm-network
+    restart: unless-stopped
+    profiles:
+      - full
+
+volumes:
+  espocrm-db-data:
+
+networks:
+  espocrm-network:
+    driver: bridge

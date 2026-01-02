@@ -1,0 +1,20 @@
+{
+    "scopeNames": {
+        "CTest": "Poop",
+        "CPoop": "Poop",
+        "CTestEntity123": "Poop",
+        "CTestEntity234": "TestEntity234",
+        "CMyUniqueWidget": "MyUniqueWidget",
+        "CMyUniqueWidget123": "MyUniqueWidget123",
+        "CTtttttttt": "8888"
+    },
+    "scopeNamesPlural": {
+        "CTest": "PoopPlus",
+        "CPoop": "Poop",
+        "CTestEntity123": "Poop",
+        "CTestEntity234": "TestEntity234s",
+        "CMyUniqueWidget": "MyUniqueWidgets",
+        "CMyUniqueWidget123": "MyUniqueWidget123",
+        "CTtttttttt": "8888"
+    }
+}

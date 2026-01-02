@@ -1,0 +1,44 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Node
+node_modules
+
+# Build artifacts
+build
+site
+
+# Docker
+docker-compose.override.yml
+
+# Environment files (keep .env.example)
+.env
+.env.local
+.env.*.local
+
+# Logs and cache (handled via volumes)
+data/logs/*
+data/cache/*
+
+# Documentation
+*.md
+!README.md
+LICENSE.txt
+COPYING.txt
+
+# Tests
+tests
+phpunit.xml
+
+# Development files
+dev
+.php-cs-fixer.cache
+.phpunit.result.cache

@@ -1,0 +1,55 @@
+# EspoCRM Development Dockerfile
+# Skips frontend build - uses pre-built assets from repo
+
+FROM php:8.3-apache
+
+# Install PHP extensions
+RUN apt-get update && apt-get install -y \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libzip-dev \
+    libicu-dev \
+    libxml2-dev \
+    libldap2-dev \
+    libzmq3-dev \
+    libpq-dev \
+    unzip \
+    git \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
+        gd \
+        pdo_mysql \
+        pdo_pgsql \
+        zip \
+        intl \
+        bcmath \
+        exif \
+        opcache \
+    && rm -rf /var/lib/apt/lists/*
+
+# Enable Apache modules
+RUN a2enmod rewrite headers
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Apache config for EspoCRM
+RUN echo '<Directory /var/www/html>\n\
+    Options Indexes FollowSymLinks\n\
+    AllowOverride All\n\
+    Require all granted\n\
+</Directory>' > /etc/apache2/conf-available/espocrm.conf \
+    && a2enconf espocrm
+
+# PHP config
+RUN echo "memory_limit = 256M" > /usr/local/etc/php/conf.d/espocrm.ini \
+    && echo "max_execution_time = 180" >> /usr/local/etc/php/conf.d/espocrm.ini \
+    && echo "max_input_time = 180" >> /usr/local/etc/php/conf.d/espocrm.ini \
+    && echo "post_max_size = 50M" >> /usr/local/etc/php/conf.d/espocrm.ini \
+    && echo "upload_max_filesize = 50M" >> /usr/local/etc/php/conf.d/espocrm.ini
+
+EXPOSE 80
+
+# Fix permissions for data directory on startup
+CMD bash -c "chown -R www-data:www-data /var/www/html/data 2>/dev/null; chmod -R 775 /var/www/html/data 2>/dev/null; apache2-foreground"

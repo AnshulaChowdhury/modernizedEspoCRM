@@ -1,0 +1,21 @@
+# Traefik Static Configuration
+# KrisetteCoInfra - Reverse Proxy
+
+api:
+  dashboard: true
+  insecure: true  # Only for development - disable in production
+
+entryPoints:
+  web:
+    address: ":80"
+
+providers:
+  docker:
+    exposedByDefault: false
+    network: krisette
+  file:
+    filename: /etc/traefik/dynamic.yml
+    watch: true
+
+log:
+  level: INFO

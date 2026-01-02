@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EspoCRM API Documentation</title>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    .swagger-ui .topbar {
+      display: none;
+    }
+    .header {
+      background: #1a365d;
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+    .header a {
+      color: #90cdf4;
+      text-decoration: none;
+    }
+    .header a:hover {
+      text-decoration: underline;
+    }
+    .auth-note {
+      background: #fef3c7;
+      border: 1px solid #f59e0b;
+      border-radius: 4px;
+      padding: 12px 24px;
+      margin: 16px 24px;
+      font-size: 14px;
+    }
+    .auth-note strong {
+      color: #92400e;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>EspoCRM API Documentation</h1>
+    <span>|</span>
+    <a href="/">Back to App</a>
+    <a href="https://docs.espocrm.com/development/api/" target="_blank">API Guide</a>
+  </div>
+
+  <div class="auth-note">
+    <strong>Authentication Required:</strong>
+    Click the "Authorize" button and enter your EspoCRM username and password (Basic Auth).
+  </div>
+
+  <div id="swagger-ui"></div>
+
+  <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js"></script>
+  <script>
+    window.onload = function() {
+      // Get the base URL dynamically
+      const baseUrl = window.location.origin;
+
+      window.ui = SwaggerUIBundle({
+        url: baseUrl + '/api/v1/OpenApi',
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIBundle.SwaggerUIStandalonePreset
+        ],
+        layout: "BaseLayout",
+        // Enable "Try it out" by default
+        tryItOutEnabled: true,
+        // Request interceptor to add auth header
+        requestInterceptor: (request) => {
+          // If auth is set in Swagger UI, it will be added automatically
+          return request;
+        },
+        // Show request duration
+        showExtensions: true,
+        showCommonExtensions: true,
+      });
+    };
+  </script>
+</body>
+</html>

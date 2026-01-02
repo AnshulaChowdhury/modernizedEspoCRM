@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Offset for DevBanner during development */
+:root {
+  --dev-banner-height: 24px;
+}
+
+body {
+  @apply bg-gray-50 text-gray-900 m-0;
+  min-height: 100vh;
+}
+
+/* Account for dev banner in layout */
+.dev-banner-offset {
+  padding-top: var(--dev-banner-height);
+}

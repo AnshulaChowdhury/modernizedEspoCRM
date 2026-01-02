@@ -1,0 +1,17 @@
+# Allow access to Swagger UI
+<IfModule mod_rewrite.c>
+    RewriteEngine Off
+</IfModule>
+
+# Allow directory index
+Options +Indexes
+DirectoryIndex index.html
+
+# Allow all access
+<IfModule mod_authz_core.c>
+    Require all granted
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Allow from all
+</IfModule>
